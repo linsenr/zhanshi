@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,minimum-scale=1.0, user-scalable=yes">
+	<title>简易留言板</title>
+	<link rel="stylesheet" type="text/css" href="lib/bootstrap.min.css">
+	<script src="lib/jquery-1.7.2.js"></script>
+	<script src="lib/bootstrap.js"></script>
+	<script src="lib/vue.js"></script>
+
+	<script>
+		window.onload = function(){
+			
+			var me=new Vue({
+				el: ".container",//挂载container
+				data: {
+					id:'',
+					username:'',
+					age:'',
+					nowIndex: -100,
+					myData: [
+						
+					]
+				},
+				methods:{
+						add: function(){
+							this.myData.push({
+								username: this.username,
+								age: this.age,
+								});
+								$.ajax({
+								url:'index.php',
+								type:'get',
+								dataType:'json',
+								data:{
+									'username':me.username,
+								    'age':me.age
+								},
+								success:function(data){
+									me.myData=data;
+								}
+								});
+							this.username = '';
+							this.age = '';
+						},
+										deleteMsg:function(n,id){
+											alert(id);
+											if(n==-1){
+												this.myData = [];
+											}else{
+												this.myData.splice(n,1);
+												}
+												$.ajax({
+																url:'index1.php',
+																type:'get',
+																data:{
+																	n:n,
+																	id:id,
+																},
+																success:function(data){
+																},
+																});
+
+											},
+						show:function(){
+						$.ajax({
+							url:'show.php',
+							type:'get',
+							dataType:'json',
+							success:function(data){
+								//alert(data);
+								me.myData=data;
+							}
+							});
+
+							},
+				}
+			});
+			me.show();
+		}
+
+	</script>
+</head>
+<body style="padding-top:30px;">
+	<div class="container">
+	<div class="h3 text-center">简易留言板</div>
+		<form rol="form">
+			<div class="form-group">
+				<label for="username">用户名：</label>
+				<input id="username" v-model="username" placeholder="输入用户名" class="form-control" type="text">
+			</div>
+			<div class="form-group">
+				<label for="age">年  龄</label>
+				<input id="age" v-model="age" placeholder="输入年龄" class="form-control" type="text">
+			</div>
+			<div class="form-group">
+				<input type="button" value="添加" class="btn btn-primary" v-on:click="add()">
+				<input type="reset" value="重置" class="btn btn-danger">
+			</div>
+		</form>
+		<hr>
+		<table class="table table-bordered table-hover">
+			<caption class="h3 text-info">用户信息表</caption>
+			<tr class="text-danger">
+				<th class="text-center">序号</th>
+				<th class="text-center">名字</th>
+				<th class="text-center">年龄</th>
+				<th class="text-center">操作</th>
+			</tr>
+			<tr class="text-center" v-for="item in myData">
+				<td>{{$index+1}}</td>
+				<td>{{item.username}}</td>
+				<td>{{item.age}}</td>
+				<td><input class="btn btn-primary btn-sm" data-toggle="modal" data-target="#layer" type="button" value="删除" v-on:click="nowIndex=$index,id=item.id"></td>
+				<!-- nowIndex=$index -->
+			</tr>
+			<tr class="text-right" v-show="myData.length != 0">
+				<td colspan="4">
+					<button class="btn btn-danger btn-sm" data-toggle="modal" data-target="#layer" v-on:click="nowIndex='-1'">删除全部</button>
+				</td>
+			</tr>
+			<tr v-show="myData.length==0">
+				<td colspan="4" class="text-center text-muted">
+					<p>暂无数据...</p>
+				</td>
+			</tr>
+		</table>
+
+		<!-- 模态框 弹出框 -->
+		<div role="dialog" class="modal fade" id="layer">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal">
+							<span>&times;</span>
+						</button>
+						<h4 class="modal-title">确认删除吗？</h4>
+					</div>
+					<div class="modal-body text-right">
+						<button class="btn btn-primary btn-sm" data-dismiss="modal">取消</button>
+						<button class="btn btn-danger btn-sm" data-dismiss="modal" v-on:click="deleteMsg(nowIndex,id)">确认</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
